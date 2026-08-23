@@ -1,21 +1,26 @@
-# Evara Yoga — Vercel Deploy Package
+# Evara Yoga — Vercel Fixed Deploy
 
-Static Vercel-ready website.
+This package includes the missing root `index.html` plus:
+- about.html
+- classes.html
+- benefits.html
+- testimonials.html
+- booking.html
+- contact.html
+- evara-logo.jpg
+- vercel.json
 
-Pages:
-- /                 Home
-- /about            About Us
-- /classes          Classes
-- /benefits         Benefits
-- /testimonials     Testimonials
-- /booking          Booking
-- /contact          Contact
+For Vercel:
+- Framework Preset: Other
+- Build Command: leave empty
+- Output Directory: .
+- Root Directory: the folder containing index.html
 
-The navigation can be updated to point directly to these routes after deployment.
-Replace demo phone/email/social links with the real Evara Yoga details before launch.
-
-Deploy:
-1. Upload this folder/repository to Vercel.
-2. Framework preset: Other.
-3. Build command: none.
-4. Output directory: .
+After deployment:
+https://YOUR-DOMAIN.vercel.app/
+https://YOUR-DOMAIN.vercel.app/about
+https://YOUR-DOMAIN.vercel.app/classes
+https://YOUR-DOMAIN.vercel.app/benefits
+https://YOUR-DOMAIN.vercel.app/testimonials
+https://YOUR-DOMAIN.vercel.app/booking
+https://YOUR-DOMAIN.vercel.app/contact

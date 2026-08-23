@@ -2,6 +2,32 @@
   "version": 2,
   "cleanUrls": true,
   "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/about",
+      "destination": "/about.html"
+    },
+    {
+      "source": "/classes",
+      "destination": "/classes.html"
+    },
+    {
+      "source": "/benefits",
+      "destination": "/benefits.html"
+    },
+    {
+      "source": "/testimonials",
+      "destination": "/testimonials.html"
+    },
+    {
+      "source": "/booking",
+      "destination": "/booking.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/contact.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
