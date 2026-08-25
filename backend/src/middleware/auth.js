@@ -1,0 +1,3 @@
+import {supabaseAdmin} from '../services/supabase.js';
+export async function requireAuth(req,res,next){const h=req.headers.authorization||'';const token=h.startsWith('Bearer ')?h.slice(7):null;if(!token)return res.status(401).json({error:'Authentication required'});const {data,error}=await supabaseAdmin.auth.getUser(token);if(error||!data.user)return res.status(401).json({error:'Invalid or expired token'});req.user=data.user;next();}
+export function requireRole(...roles){return async(req,res,next)=>{const {data,error}=await supabaseAdmin.from('profiles').select('role').eq('id',req.user.id).single();if(error||!data||!roles.includes(data.role))return res.status(403).json({error:'Insufficient permissions'});req.userRole=data.role;next();};}
