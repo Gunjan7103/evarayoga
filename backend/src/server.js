@@ -1,5 +1,4 @@
-import express from 'express'; import cors from 'cors'; import helmet from 'helmet'; import morgan from 'morgan'; import {env} from './config/env.js'; import classes from './routes/classes.js'; import instructors from './routes/instructors.js'; import testimonials from './routes/testimonials.js'; import contact from './routes/contact.js'; import bookings from './routes/bookings.js'; import admin from './routes/admin.js'; import {errorHandler} from './middleware/errorHandler.js';
-const app=express(); app.use(helmet()); app.use(cors({origin:env.corsOrigin==='*'?true:env.corsOrigin})); app.use(express.json({limit:'1mb'})); app.use(morgan('dev'));
-app.get('/api/health',(req,res)=>res.json({status:'ok',service:'evara-yoga-backend'}));
-app.use('/api/classes',classes); app.use('/api/instructors',instructors); app.use('/api/testimonials',testimonials); app.use('/api/contact',contact); app.use('/api/bookings',bookings); app.use('/api/admin',admin); app.use(errorHandler);
-app.listen(env.port,()=>console.log(`Evara Yoga API running on http://localhost:${env.port}`));
+import {app} from './app.js';
+import {env} from './config/env.js';
+
+app.listen(env.port,()=>console.log(`Evara Yoga API running on port ${env.port}`));
