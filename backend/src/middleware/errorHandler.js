@@ -1,1 +1,14 @@
-export function errorHandler(err,req,res,next){console.error(err);res.status(err.status||500).json({error:err.message||'Internal server error'});}
+export function notFoundHandler(req,res){
+  res.status(404).json({error:'Route not found'});
+}
+
+export function errorHandler(err,req,res,next){
+  const status=Number.isInteger(err?.status)&&err.status>=400&&err.status<600?err.status:500;
+  const message=status===500?'Internal server error':(err.message||'Request failed');
+
+  if(status===500){
+    console.error(err);
+  }
+
+  res.status(status).json({error:message});
+}
