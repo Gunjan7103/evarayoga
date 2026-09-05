@@ -1,35 +1,35 @@
 # Evara Yoga
 
-A modern full-stack yoga and wellness platform built to deliver a premium digital experience for discovering classes, exploring instructors, submitting enquiries, and booking yoga sessions.
+A modern full-stack yoga and wellness platform designed for class discovery, instructor exploration, customer enquiries, and session booking.
 
-Evara Yoga combines a responsive public website with a Node.js/Express API and a Supabase-powered PostgreSQL backend.
+The project combines a responsive public-facing website with a Node.js/Express backend and a managed PostgreSQL-based data layer.
+
+> **Security note:** This repository intentionally does not contain production credentials, API secrets, database connection values, or other sensitive configuration.
 
 ## Features
 
 ### Public Experience
 - Responsive multi-page wellness website
-- Classes and instructor discovery
+- Class and instructor discovery
 - Benefits and testimonials
-- Contact and enquiry form
+- Contact and enquiry workflow
 - Mobile-friendly layouts
 
 ### Booking System
 - Live session availability
 - Capacity-aware bookings
-- Database-level overbooking protection
+- Database-level protection against overbooking
 - Customer details and booking notes
 - Booking status management
 
-### Backend & Database
-- Node.js and Express API
-- Supabase PostgreSQL integration
-- Supabase Auth foundation
-- Role-based access control
-- Row Level Security policies
+### Backend
+- REST API architecture
+- Authentication and role-based access-control foundation
+- Row-level data protection
 - Database migrations
 - Centralized error handling
 - Environment validation
-- CORS and Helmet security
+- CORS and security middleware
 
 ## Technology Stack
 
@@ -37,23 +37,22 @@ Evara Yoga combines a responsive public website with a Node.js/Express API and a
 |---|---|
 | Frontend | HTML5, CSS3, JavaScript |
 | Backend | Node.js, Express |
-| Database | PostgreSQL via Supabase |
-| Authentication | Supabase Auth |
-| Security | Supabase RLS, Helmet, CORS |
-| Deployment | Vercel |
-| Typography | Playfair Display, DM Sans |
+| Database | Managed PostgreSQL |
+| Authentication | Managed authentication service |
+| Security | Row-level policies, Helmet, CORS |
+| Deployment | Serverless-compatible hosting |
 
 ## Project Structure
 
 ```text
 evarayoga/
-├── api/                         # Vercel serverless API entrypoint
+├── api/                         # Serverless API entrypoint
 ├── backend/
 │   ├── src/
-│   │   ├── config/              # Environment configuration
+│   │   ├── config/              # Runtime configuration
 │   │   ├── middleware/          # Authentication and error handling
 │   │   ├── routes/              # API endpoints
-│   │   ├── services/            # Supabase integration
+│   │   ├── services/            # External service integration
 │   │   ├── app.js               # Express application
 │   │   └── server.js            # Local server bootstrap
 │   └── supabase/
@@ -67,88 +66,66 @@ evarayoga/
 ├── testimonials.html
 ├── booking.html
 ├── contact.html
-├── vercel.json
 └── README.md
 ```
 
-## API Endpoints
+## API Overview
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/health` | API health status |
-| GET | `/api/classes` | Available classes |
-| GET | `/api/instructors` | Instructor information |
-| GET | `/api/testimonials` | Published testimonials |
-| GET | `/api/bookings/schedules` | Upcoming open sessions |
-| POST | `/api/bookings` | Create a booking |
-| POST | `/api/contact` | Submit a contact enquiry |
+The application exposes endpoints for:
 
-Administrative endpoints are protected through authentication and role-based authorization.
+- Service health checks
+- Classes
+- Instructors
+- Testimonials
+- Available schedules
+- Booking creation
+- Contact enquiries
+- Protected administrative operations
+
+Public and protected operations are separated through server-side authorization controls.
 
 ## Local Development
 
-### Clone the repository
+Clone the repository and install the project dependencies:
 
 ```bash
 git clone https://github.com/chamanvashishth/evarayoga.git
 cd evarayoga
-```
-
-### Install dependencies
-
-```bash
 cd backend
 npm install
 ```
 
-### Configure environment variables
+### Configuration
 
-Create `backend/.env`:
+The application requires environment-specific configuration to run locally or in production.
 
-```env
-PORT=4000
-NODE_ENV=development
-CORS_ORIGIN=http://localhost:3000,http://127.0.0.1:5500
-
-SUPABASE_URL=your_supabase_project_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-```
-
-Never commit real credentials.
-
-### Apply database migrations
-
-Apply migrations in order:
+Use the provided example configuration file as a template:
 
 ```text
-001_initial_schema.sql
-002_atomic_booking.sql
+backend/.env.example
 ```
 
-### Start the API
+Create your own local environment file from that template and provide values through your deployment platform or local environment.
 
-```bash
-npm run dev
-```
+**Do not commit secrets, production credentials, private keys, or service-role credentials to Git.**
 
-The API runs locally on:
+## Database Setup
 
-```text
-http://localhost:4000
-```
+Database schema changes are managed through versioned migrations.
+
+Apply migrations sequentially in your database environment before running the application against a fresh instance.
+
+The booking workflow uses a database-side atomic operation to ensure that concurrent requests cannot exceed session capacity.
 
 ## Booking Architecture
 
-A naive booking workflow checks capacity and then creates a booking:
+A naive booking workflow can fail under concurrent traffic:
 
 ```text
 Check capacity → Create booking
 ```
 
-Under concurrent requests, multiple users can pass the same capacity check.
-
-Evara Yoga uses an atomic database-side workflow:
+Evara Yoga instead performs booking validation atomically:
 
 ```text
 Lock schedule
@@ -159,55 +136,50 @@ Validate remaining capacity
    ↓
 Create booking
    ↓
-Update booked count
+Update booking count
    ↓
 Commit
 ```
 
-This prevents concurrent booking requests from exceeding session capacity.
+This design prevents multiple concurrent requests from independently passing a stale capacity check.
+
+## Security Practices
+
+The project follows these principles:
+
+- Secrets are supplied through environment configuration
+- No production credentials are stored in source control
+- Sensitive server credentials remain server-side
+- Protected operations require authorization
+- Database access uses row-level protection where applicable
+- CORS is restricted by environment
+- Security headers are enabled
+- Request payload sizes are limited
+- User input is validated and normalized
+- Errors are handled centrally without exposing unnecessary internal details
 
 ## Deployment
 
-The project is configured for Vercel.
+The application is designed for a serverless-compatible deployment environment.
 
-Required production variables:
+Before deployment:
 
-```env
-NODE_ENV=production
-SUPABASE_URL=
-SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-CORS_ORIGIN=https://your-production-domain.com
-```
-
-The Supabase service-role key must remain server-side only.
-
-## Security
-
-The project includes:
-
-- Supabase Row Level Security
-- Role-based authorization
-- Server-side service-role usage
-- Helmet security headers
-- Restricted CORS origins
-- Environment validation
-- Request body limits
-- Input normalization
-- Email validation
-- Centralized error handling
-- Atomic booking operations
+1. Configure environment variables directly in the hosting platform.
+2. Apply database migrations to the target environment.
+3. Configure the production application's allowed origin.
+4. Verify that no secrets are exposed to client-side code.
+5. Run application checks and smoke tests.
 
 ## Roadmap
 
-Planned improvements may include:
+Potential future improvements:
 
 - Online payments
 - Email confirmations
 - Customer accounts
 - Booking cancellation flow
 - Instructor dashboards
-- Full admin dashboard
+- Full administrative dashboard
 - Calendar integration
 - Real-time availability
 - Automated reminders
