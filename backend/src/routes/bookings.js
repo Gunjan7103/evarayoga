@@ -1,5 +1,58 @@
-import {Router} from 'express'; import {supabaseAdmin} from '../services/supabase.js';
+import {Router} from 'express';
+import {supabaseAdmin} from '../services/supabase.js';
+
 const router=Router();
-router.get('/schedules',async(req,res,next)=>{try{const {data,error}=await supabaseAdmin.from('class_schedules').select('*, classes(id,title,duration_minutes,price)').eq('status','open').gt('starts_at',new Date().toISOString()).order('starts_at');if(error)throw error;res.json(data);}catch(e){next(e);}});
-router.post('/',async(req,res,next)=>{try{const {schedule_id,customer_name,email,phone,notes}=req.body;if(!schedule_id||!customer_name||!email)return res.status(400).json({error:'schedule_id, customer_name and email are required'});const {data:s,error:se}=await supabaseAdmin.from('class_schedules').select('id,capacity,booked_count,status').eq('id',schedule_id).single();if(se||!s)return res.status(404).json({error:'Schedule not found'});if(s.status!=='open'||s.booked_count>=s.capacity)return res.status(409).json({error:'This session is full or unavailable'});const {data,error}=await supabaseAdmin.from('bookings').insert({schedule_id,customer_name,email,phone:phone||null,notes:notes||null}).select('id,status,created_at').single();if(error)throw error;res.status(201).json({message:'Booking request received',data});}catch(e){next(e);}});
+
+const emailPattern=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const clean=(value,max=500)=>typeof value==='string'?value.trim().slice(0,max):'';
+
+router.get('/schedules',async(req,res,next)=>{
+  try{
+    const {data,error}=await supabaseAdmin
+      .from('class_schedules')
+      .select('id,starts_at,ends_at,capacity,booked_count,status,classes(id,title,duration_minutes,price)')
+      .eq('status','open')
+      .gt('starts_at',new Date().toISOString())
+      .order('starts_at');
+
+    if(error) throw error;
+    res.json({data});
+  }catch(error){next(error);}
+});
+
+router.post('/',async(req,res,next)=>{
+  try{
+    const schedule_id=clean(req.body?.schedule_id,100);
+    const customer_name=clean(req.body?.customer_name,120);
+    const email=clean(req.body?.email,254).toLowerCase();
+    const phone=clean(req.body?.phone,40)||null;
+    const notes=clean(req.body?.notes,2000)||null;
+
+    if(!schedule_id||!customer_name||!email){
+      return res.status(400).json({error:'schedule_id, customer_name and email are required'});
+    }
+    if(!emailPattern.test(email)){
+      return res.status(400).json({error:'A valid email address is required'});
+    }
+
+    // Capacity and schedule state are enforced atomically in PostgreSQL.
+    const {data,error}=await supabaseAdmin.rpc('create_booking',{
+      p_schedule_id:schedule_id,
+      p_customer_name:customer_name,
+      p_email:email,
+      p_phone:phone,
+      p_notes:notes
+    });
+
+    if(error){
+      if(['P0001','23503'].includes(error.code)){
+        return res.status(409).json({error:error.message});
+      }
+      throw error;
+    }
+
+    res.status(201).json({message:'Booking request received',data:data?.[0]??data});
+  }catch(error){next(error);}
+});
+
 export default router;
